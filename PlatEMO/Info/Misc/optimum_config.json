@@ -1,0 +1,14 @@
+{
+    "default_num_opt": 120,
+    "target_points": 120,
+    "overrides": {
+        "IMOP5": 155,
+        "IMOP6": 280,
+        "IMOP7": 330,
+        "IMOP8": 690,
+        "MaF2": 690,
+        "VNT1": 220,
+        "VNT2": 980,
+        "VNT3": 750
+    }
+}

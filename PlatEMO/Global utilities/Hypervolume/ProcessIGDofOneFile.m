@@ -1,0 +1,85 @@
+%%%
+% fileInfo contains:
+% 'filepath': str -- Example: './Data/Alg/a.mat'
+% 'algorithm': str -- Example: NSGA-III
+% 'filename': str -- Example: 'a.mat'
+% 'hvFilepath': str -- Example: './HVData/Alg/a.mat'
+% 'shouldProcess': bool -- Example: false
+%%% 
+
+function result = ProcessIGDofOneFile(fileInfo)
+    result = struct('success', false, 'igdData', [], 'error', '');
+
+    try
+        % Load original data
+        data = load(fileInfo.filepath);
+
+        % Parse filename to get problem information
+        parts = strsplit(fileInfo.filename, '_');
+        if length(parts) < 5
+            result.error = 'Invalid filename format';
+            return;
+        end
+
+        problemName = parts{2};
+        M = str2double(parts{3}(2:end));
+        D = str2double(parts{4}(2:end));
+
+        % Get problem instance and reference point
+        problemHandle = str2func(problemName);
+        problem = problemHandle('M', M, 'D', D);
+        [PF, ref] = GetPFnRef(problem);
+
+        % Compute hypervolume and CV for each generation
+        resultData = data.result;
+        numGenerations = size(resultData, 1);
+        FE = zeros(numGenerations, 1);
+        IGD = zeros(numGenerations, 1);
+        avgCV = zeros(numGenerations, 1);
+        feasibleCount = zeros(numGenerations, 1);
+
+        for g = 1:numGenerations
+            FE(g) = resultData{g, 1};
+            Population = resultData{g, 2};
+
+            cons = Population.cons;
+            cons(cons < 0) = 0;
+            CV = sum(cons, 2);
+            avgCV(g) = sum(CV) / numel(CV);
+
+            % Get feasible population for HV computation
+            feas_pop = GetFeasible(Population);
+
+
+            objs = feas_pop.objs;
+
+            IGD(g) = IGD(objs, PF);
+            feasibleCount(g) = size(objs, 1);
+        end
+
+        % Create structure to return
+        igdData = struct();
+        igdData.FE = FE;
+        igdData.IGD = IGD;
+        igdData.avgCV = avgCV;
+        igdData.feasibleCount = feasibleCount;
+        igdData.referencePoint = ref;
+        igdData.problemInfo = struct(...
+            'algorithm', fileInfo.algorithm, ...
+            'problemName', problemName, ...
+            'M', M, ...
+            'D', D, ...
+            'originalFile', fileInfo.filename);
+
+        fprintf("%s on %s\n", fileInfo.algorithm, problemName);
+        fprintf("Original file: %s\n", fileInfo.filename);
+        igdData.computationDate = datetime('now');
+
+        result.igdData = igdData;
+        result.success = true;
+
+    catch ME
+        result.error = ME.message;
+        result.success = false;
+    end
+end

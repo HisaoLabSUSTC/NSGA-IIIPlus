@@ -1,0 +1,74 @@
+classdef RWA4 < PROBLEM
+% <multi/many> <real> <large/none> <expensive/none>
+% Engineering applications of multi-objective evolutionary algorithms: A test suite of box-constrained real-world problems
+
+%------------------------------- Reference --------------------------------
+% This is a two-objective version of the reinforced concrete beam design problem.
+% 
+% Reference:
+% H. M. Amir and T. Hasegawa, "Nonlinear Mixed-Discrete Structural Optimization," J. Struct. Eng., vol. 115, no. 3, pp. 626-646, 1989.
+%
+%  Copyright (c) 2018 Ryoji Tanabe
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
+
+    methods
+        %% Default settings of the problem
+        function Setting(obj)
+            if isempty(obj.M)
+                obj.M = 3;
+            end
+            if isempty(obj.D)
+                obj.D = 5;
+            end
+            obj.lower    = [1,10,850,20,4];
+            obj.upper    = [1.4,26,1650,40,8];
+            obj.encoding = ones(1,obj.D);
+        end
+        %% Calculate objective values
+        function PopObj = CalObj(obj,PopDec)
+            M      = obj.M;
+            PopObj = zeros(size(PopDec,1),M);
+            x1 = PopDec(:,1);
+            x2 = PopDec(:,2);
+            x3 = PopDec(:,3);
+            x4 = PopDec(:,4);
+            x5 = PopDec(:,5);
+
+            PopObj(:,1) = -1*(1.74 + 0.42 * x1 - 0.27 * x2 + 0.087 * x3 - 0.19 * x4 + 0.18 * x5 ...
+			    + 0.11 * x1 .* x1 + 0.036 * x4 .* x4 - 0.025 * x5 .* x5 ...
+			    + 0.044 * x1 .* x2 + 0.034 * x1 .* x4 + 0.17 * x1 .* x5 ...
+			    - 0.028 * x2 .* x4 + 0.093 * x3 .* x4 - 0.033 * x4 .* x5);
+            PopObj(:,2) = 2.19 + 0.26 * x1 - 0.088 * x2 + 0.037 * x3 - 0.16 * x4 + 0.069 * x5 ...
+			    + 0.036 * x1 .* x1 + 0.11 * x1 .* x3 - 0.077 * x1 .* x4 ...
+			    - 0.075 * x2 .* x3 + 0.054 * x2 .* x4 + 0.090 * x3 .* x5 ...
+			    + 0.041 * x4 .* x5;
+            PopObj(:,3) = 0.095 + 0.013 * x1 - 8.625 * 1e-003 * x2 - 5.458 * 1e-003 * x3 ...
+			- 0.012 * x4 + 1.462 * 1e-003 * x1 .* x1 - 6.635 * 1e-004 * x2 .* x2 ...
+			- 1.788 * 1e-003 * x4 .* x4 - 0.011 * x1 .* x2 ...
+			- 6.188 * 1e-003 * x1 .* x3 + 8.937 * 1e-003 * x1 .* x4 ...
+			- 4.563 * 1e-003 * x1 .* x5 - 0.012 * x2 .* x3 ...
+			- 1.063 * 1e-003 * x2 .* x4 + 2.438 * 1e-003 * x2 .* x5 ...
+			- 1.937 * 1e-003 * x3 .* x4 - 1.188 * 1e-003 * x3 .* x5 ...
+			- 3.312 * 1e-003 * x4 .* x5;
+        end
+        %% Generate points on the Pareto front
+
+        
+        function R = GetOptimum(obj,N)
+            R = load('RWA4.mat').PF;
+        end
+    end
+end
