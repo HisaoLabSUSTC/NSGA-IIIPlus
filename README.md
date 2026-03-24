@@ -1,6 +1,6 @@
 # NSGA-III+: Improved NSGA-III for Many-Objective Optimization
 
-An enhanced NSGA-III implementation built on [PlatEMO](https://github.com/BIMK/PlatEMO), addressing three known deficiencies in standard NSGA-III: implementation vulnerabilities in nadir point estimation, ill-conditioned hyperplane fitting, and random non-niched survivor selection.
+An enhanced NSGA-III implementation built on [PlatEMO](https://github.com/BIMK/PlatEMO), addressing three known deficiencies in standard NSGA-III: inconsistent implementations and overlooked behaviors, unstable nadir point estimation, and random non-niched survivor selection.
 
 ## Modifications
 
@@ -8,8 +8,8 @@ NSGA-III+ introduces three layers of improvements, each targeting a specific def
 
 | Layer | Deficiency | Modification | Effect |
 |-------|-----------|--------------|--------|
-| **Area 1** - Implementation | Unstable extreme point detection | `Z` (remove $10^{-3}$ threshold), `Y` (preserve corner solutions), `X` (extreme point archive) | Improved convergence (HV, IGD+) |
-| **Area 2** - Normalization | Ill-conditioned hyperplane system | Tikhonov regularization (`Tk`) with adaptive scaling | Stable nadir estimation, bounded condition number |
+| **Area 1** - Consistency | Unstable extreme point detection | `Z` (remove $10^{-3}$ threshold), `Y` (preserve corner solutions), `X` (extreme point archive) | Improved convergence (HV, IGD+) |
+| **Area 2** - Stability | Ill-conditioned hyperplane system | Tikhonov regularization (`Tk`) with adaptive scaling | Stable nadir estimation, bounded condition number |
 | **Area 3** - Selection | Random non-niched selection | Distance-based Subset Selection (`DSS`) | Deterministic, improved diversity |
 
 These modifications are composable: any combination can be enabled independently.
@@ -68,7 +68,7 @@ algD = generateAlgorithm('area1', 'ZY', 'momentum', 'tikhonov', 'dss', true);
 
 ## Configuration Reference
 
-### Area 1: Implementation Flags
+### Area 1: Consistency
 
 | Flag | Config Field | Description |
 |------|-------------|-------------|
@@ -78,7 +78,7 @@ algD = generateAlgorithm('area1', 'ZY', 'momentum', 'tikhonov', 'dss', true);
 
 Pass any combination via the `'area1'` argument: `'Z'`, `'ZY'`, `'ZYX'`, etc.
 
-### Area 2: Normalization
+### Area 2: Stability
 
 | Method | Config Value | Description |
 |--------|-------------|-------------|
@@ -97,6 +97,7 @@ Example with custom Tikhonov parameters:
 ```matlab
 alg = generateAlgorithm('momentum', 'tikhonov', 'regLambda', 1e-2, 'regAdaptive', true);
 ```
+(note: it is called momentum because an originally failed attempt at using momentum-based methods to stabilize the nadir point trajectory. Interestingly, we also tried to apply the extended Kalman filter to the nadir-point-inverse space. However, this did not produce empirically better results)
 
 ### Area 3: Selection
 
