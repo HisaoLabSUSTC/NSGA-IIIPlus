@@ -1,16 +1,16 @@
 # NSGA-III+: Improved NSGA-III for Many-Objective Optimization
 
-An enhanced NSGA-III implementation built on [PlatEMO](https://github.com/BIMK/PlatEMO), addressing three known deficiencies in standard NSGA-III: inconsistent implementations and overlooked behaviors, unstable nadir point estimation, and random non-niched survivor selection.
+An enhanced NSGA-III implementation built on [PlatEMO](https://github.com/BIMK/PlatEMO), addressing three issues in pymoo's NSGA-III: Consistency, Stability, and Uniformity.
 
 ## Modifications
 
 NSGA-III+ introduces three layers of improvements, each targeting a specific deficiency:
 
-| Layer | Deficiency | Modification | Effect |
+| Layer | Issue | Modification | Effect |
 |-------|-----------|--------------|--------|
-| **Area 1** - Consistency | Unstable extreme point detection | `Z` (remove $10^{-3}$ threshold), `Y` (preserve corner solutions), `X` (extreme point archive) | Improved convergence (HV, IGD+) |
-| **Area 2** - Stability | Ill-conditioned hyperplane system | Tikhonov regularization (`Tk`) with adaptive scaling | Stable nadir estimation, bounded condition number |
-| **Area 3** - Selection | Random non-niched selection | Distance-based Subset Selection (`DSS`) | Deterministic, improved diversity |
+| **Area 1** - Consistency | Inconsistent algorithm behavior | `Z` (remove $10^{-3}$ threshold), `Y` (preserve corner solutions), `X` (extreme point archive) | Improved consistency |
+| **Area 2** - Stability | Ill-conditioned hyperplane system | Tikhonov regularization (`Tk`) | Stable nadir estimation, bounded condition number |
+| **Area 3** - Uniformity | Random non-niched selection | Distance-based Subset Selection (`DSS`) | Deterministic, improved diversity |
 
 These modifications are composable: any combination can be enabled independently.
 
@@ -18,8 +18,7 @@ These modifications are composable: any combination can be enabled independently
 
 ### Requirements
 
-- MATLAB R2018a or later (GUI features require R2020b+)
-- No additional toolboxes required
+- MATLAB R2023a or later
 
 ### Running a Single Experiment
 
@@ -56,7 +55,7 @@ platemo('algorithm', alg, 'problem', @DTLZ1, 'N', 120, 'M', 3, 'maxFE', 100000);
 % Row A: NSGA-III baseline
 algA = generateAlgorithm();
 
-% Row B: ZY-NSGA-III (implementation fixes only)
+% Row B: ZY-NSGA-III (consistency fixes only)
 algB = generateAlgorithm('area1', 'ZY');
 
 % Row C: ZY-Tk-NSGA-III (+ Tikhonov regularization)
@@ -97,9 +96,8 @@ Example with custom Tikhonov parameters:
 ```matlab
 alg = generateAlgorithm('momentum', 'tikhonov', 'regLambda', 1e-2, 'regAdaptive', true);
 ```
-(note: it is called momentum because an originally failed attempt at using momentum-based methods to stabilize the nadir point trajectory. Interestingly, we also tried to apply the extended Kalman filter to the nadir-point-inverse space. However, this did not produce empirically better results)
 
-### Area 3: Selection
+### Area 3: Uniformity
 
 | Method | Config Value | Description |
 |--------|-------------|-------------|
